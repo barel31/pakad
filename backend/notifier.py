@@ -58,7 +58,7 @@ class Notifier:
                 await self._bot.send_message(
                     chat_id=chat_id,
                     text=msg,
-                    parse_mode=ParseMode.MARKDOWN,
+                    parse_mode=ParseMode.HTML,
                 )
                 return
             except TelegramForbiddenError:

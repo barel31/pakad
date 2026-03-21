@@ -1,12 +1,30 @@
 import asyncio
 import logging
 import os
+import traceback
 from dotenv import load_dotenv
 import uvicorn
 from aiogram import Bot
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 logger = logging.getLogger(__name__)
+
+
+async def supervise(name: str, coro_factory):
+    """Restart a coroutine if it raises, with exponential backoff."""
+    delay = 1.0
+    while True:
+        try:
+            await coro_factory()
+            delay = 1.0
+        except asyncio.CancelledError:
+            raise
+        except Exception:
+            logger.error("Task %s crashed:\n%s", name, traceback.format_exc())
+            logger.info("Restarting %s in %.1fs", name, delay)
+            await asyncio.sleep(delay)
+            delay = min(delay * 2, 60.0)
+
 
 async def main():
     load_dotenv()
@@ -41,21 +59,15 @@ async def main():
     queue: asyncio.Queue = asyncio.Queue(maxsize=1)
     from backend.oref_poller import OrefPoller
     from backend.notifier import Notifier
-    poller = OrefPoller(queue=queue, interval=poll_interval)
+    poller = OrefPoller(queue=queue, interval=poll_interval, pool=pool)
     notifier = Notifier(bot=bot, pool=pool)
-
-    async def run_bot():
-        await dp.start_polling(bot)
-
-    async def run_notifier():
-        await notifier.run(queue)
 
     logger.info("Starting all tasks on port %s", port)
     await asyncio.gather(
-        server.serve(),
-        poller.run(),
-        run_notifier(),
-        run_bot(),
+        supervise("uvicorn", lambda: server.serve()),
+        supervise("poller", lambda: poller.run()),
+        supervise("notifier", lambda: notifier.run(queue)),
+        supervise("bot", lambda: dp.start_polling(bot)),
     )
 
 if __name__ == "__main__":

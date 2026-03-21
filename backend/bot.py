@@ -52,6 +52,9 @@ async def cmd_stop(message: Message, *, pool: asyncpg.Pool) -> None:
 async def cmd_filter(message: Message, *, pool: asyncpg.Pool) -> None:
     sub = await get_subscriber(pool, message.from_user.id)
     lang = sub["language"] if sub else "he"
+    if not sub:
+        await message.answer(render("start_welcome", lang))
+        return
     parts = message.text.split(maxsplit=1)
     if len(parts) < 2:
         await message.answer(render("filter_not_found", lang, area=""))

@@ -1,3 +1,5 @@
+from html import escape as _esc
+
 TEMPLATES: dict[str, dict[str, str]] = {
     "start_welcome": {
         "he": "ברוך הבא! 🚨\nנרשמת לקבלת התראות פיקוד העורף.\nהשתמש ב-/help לרשימת פקודות.",
@@ -84,14 +86,14 @@ def render_alert(
     areas_str = ", ".join(areas)
     if language == "he":
         return (
-            f"🚨 *{title}*\n\n"
-            f"📍 *אזורים:* {areas_str}\n"
-            f"🕐 *שעה:* {time_str}\n\n"
+            f"🚨 <b>{_esc(title)}</b>\n\n"
+            f"📍 <b>אזורים:</b> {_esc(areas_str)}\n"
+            f"🕐 <b>שעה:</b> {time_str}\n\n"
             f"היכנסו למרחב המוגן מיד!"
         )
     return (
-        f"🚨 *Rocket & Missile Fire*\n\n"
-        f"📍 *Areas:* {areas_str}\n"
-        f"🕐 *Time:* {time_str}\n\n"
+        f"🚨 <b>Rocket &amp; Missile Fire</b>\n\n"
+        f"📍 <b>Areas:</b> {_esc(areas_str)}\n"
+        f"🕐 <b>Time:</b> {time_str}\n\n"
         f"Enter a protected space immediately!"
     )
