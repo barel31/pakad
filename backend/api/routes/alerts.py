@@ -31,7 +31,9 @@ async def get_alerts(
             params.append(to)
         if conditions:
             query += " WHERE " + " AND ".join(conditions)
-        query += f" ORDER BY received_at DESC LIMIT {limit} OFFSET {offset}"
+        params.append(limit)
+        params.append(offset)
+        query += f" ORDER BY received_at DESC LIMIT ${len(params)-1} OFFSET ${len(params)}"
         rows = await conn.fetch(query, *params)
     return [dict(r) for r in rows]
 

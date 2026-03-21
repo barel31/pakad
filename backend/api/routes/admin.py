@@ -23,6 +23,9 @@ async def admin_stats(request: Request):
         total = await conn.fetchval("SELECT COUNT(*) FROM subscribers")
         active = await conn.fetchval("SELECT COUNT(*) FROM subscribers WHERE active = TRUE AND blocked = FALSE")
         blocked = await conn.fetchval("SELECT COUNT(*) FROM subscribers WHERE blocked = TRUE")
+        inactive = await conn.fetchval(
+            "SELECT COUNT(*) FROM subscribers WHERE active = FALSE AND blocked = FALSE"
+        )
         alerts_today = await conn.fetchval(
             "SELECT COUNT(*) FROM alerts_history WHERE received_at >= NOW() - INTERVAL '1 day'"
         )
@@ -32,7 +35,7 @@ async def admin_stats(request: Request):
     bot_enabled = await get_setting(pool, "bot_enabled")
     poll_interval = await get_setting(pool, "poll_interval_seconds")
     return {
-        "subscribers": {"total": total, "active": active, "blocked": blocked, "inactive": total - active - blocked},
+        "subscribers": {"total": total, "active": active, "blocked": blocked, "inactive": inactive},
         "alerts_today": alerts_today,
         "last_alert_at": last_alert["received_at"].isoformat() if last_alert else None,
         "bot_enabled": bot_enabled == "true",
@@ -92,7 +95,15 @@ async def broadcast(request: Request, body: BroadcastBody):
                 )
         except TelegramRetryAfter as e:
             await asyncio.sleep(min(e.retry_after, 30))
-            await bot.send_message(chat_id=row["chat_id"], text=body.message)
+            try:
+                await bot.send_message(chat_id=row["chat_id"], text=body.message)
+            except TelegramForbiddenError:
+                async with pool.acquire() as conn:
+                    await conn.execute(
+                        "UPDATE subscribers SET active = FALSE WHERE chat_id = $1", row["chat_id"]
+                    )
+            except Exception:
+                pass
         except Exception:
             pass
     return {"ok": True, "recipients": len(rows)}
@@ -152,10 +163,11 @@ async def add_admin(request: Request, chat_id: int = Body(..., embed=True), admi
 @router.delete("/admins/{chat_id}")
 async def remove_admin(chat_id: int, request: Request, admin_id: int = Depends(require_admin)):
     async with request.app.state.pool.acquire() as conn:
-        count = await conn.fetchval("SELECT COUNT(*) FROM admins")
-        if count <= 1:
-            raise HTTPException(status_code=400, detail="Cannot remove last admin")
-        if chat_id == admin_id:
-            raise HTTPException(status_code=400, detail="Cannot remove yourself")
-        await conn.execute("DELETE FROM admins WHERE chat_id = $1", chat_id)
+        async with conn.transaction():
+            count = await conn.fetchval("SELECT COUNT(*) FROM admins")
+            if count <= 1:
+                raise HTTPException(status_code=400, detail="Cannot remove last admin")
+            if chat_id == admin_id:
+                raise HTTPException(status_code=400, detail="Cannot remove yourself")
+            await conn.execute("DELETE FROM admins WHERE chat_id = $1", chat_id)
     return {"ok": True}
