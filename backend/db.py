@@ -61,47 +61,49 @@ async def seed_initial_data(
 ) -> None:
     from backend.areas import AREAS
     async with pool.acquire() as conn:
-        await conn.execute("""
-            INSERT INTO bot_settings (key, value)
-            VALUES ('poll_interval_seconds', $1), ('bot_enabled', 'true')
-            ON CONFLICT (key) DO NOTHING
-        """, str(poll_interval))
-        if superadmin_id:
+        async with conn.transaction():
             await conn.execute("""
-                INSERT INTO admins (chat_id, added_by)
-                VALUES ($1, $1)
-                ON CONFLICT (chat_id) DO NOTHING
-            """, superadmin_id)
-        for area in AREAS:
-            await conn.execute("""
-                INSERT INTO areas (name) VALUES ($1)
-                ON CONFLICT (name) DO NOTHING
-            """, area)
+                INSERT INTO bot_settings (key, value)
+                VALUES ('poll_interval_seconds', $1), ('bot_enabled', 'true')
+                ON CONFLICT (key) DO NOTHING
+            """, str(poll_interval))
+            if superadmin_id:
+                await conn.execute("""
+                    INSERT INTO admins (chat_id, added_by)
+                    VALUES ($1, $1)
+                    ON CONFLICT (chat_id) DO NOTHING
+                """, superadmin_id)
+            await conn.executemany(
+                "INSERT INTO areas (name) VALUES ($1) ON CONFLICT (name) DO NOTHING",
+                [(area,) for area in AREAS],
+            )
 
 async def upsert_subscriber(
     pool: asyncpg.Pool, chat_id: int, language: str = "he"
 ) -> None:
     async with pool.acquire() as conn:
-        await conn.execute("""
-            INSERT INTO subscribers (chat_id, language, subscribed_at, active)
-            VALUES ($1, $2, NOW(), TRUE)
-            ON CONFLICT (chat_id) DO UPDATE
-            SET active = TRUE, subscribed_at = NOW(), language = EXCLUDED.language
-        """, chat_id, language)
-        await conn.execute("""
-            INSERT INTO subscription_events (chat_id, event)
-            VALUES ($1, 'subscribed')
-        """, chat_id)
+        async with conn.transaction():
+            await conn.execute("""
+                INSERT INTO subscribers (chat_id, language, subscribed_at, active)
+                VALUES ($1, $2, NOW(), TRUE)
+                ON CONFLICT (chat_id) DO UPDATE
+                SET active = TRUE, subscribed_at = NOW(), language = EXCLUDED.language
+            """, chat_id, language)
+            await conn.execute("""
+                INSERT INTO subscription_events (chat_id, event)
+                VALUES ($1, 'subscribed')
+            """, chat_id)
 
 async def deactivate_subscriber(pool: asyncpg.Pool, chat_id: int) -> None:
     async with pool.acquire() as conn:
-        await conn.execute(
-            "UPDATE subscribers SET active = FALSE WHERE chat_id = $1", chat_id
-        )
-        await conn.execute("""
-            INSERT INTO subscription_events (chat_id, event)
-            VALUES ($1, 'unsubscribed')
-        """, chat_id)
+        async with conn.transaction():
+            await conn.execute(
+                "UPDATE subscribers SET active = FALSE WHERE chat_id = $1", chat_id
+            )
+            await conn.execute("""
+                INSERT INTO subscription_events (chat_id, event)
+                VALUES ($1, 'unsubscribed')
+            """, chat_id)
 
 async def get_subscriber(pool: asyncpg.Pool, chat_id: int):
     async with pool.acquire() as conn:
@@ -132,12 +134,12 @@ async def add_filter(pool: asyncpg.Pool, chat_id: int, area: str) -> bool:
             )
             if count >= 10:
                 return False
-            await conn.execute("""
+            result = await conn.execute("""
                 INSERT INTO subscriber_filters (chat_id, area)
                 VALUES ($1, $2)
                 ON CONFLICT DO NOTHING
             """, chat_id, area)
-            return True
+            return result == "INSERT 0 1"
 
 async def clear_filters(pool: asyncpg.Pool, chat_id: int) -> None:
     async with pool.acquire() as conn:
@@ -152,7 +154,7 @@ async def is_admin(pool: asyncpg.Pool, chat_id: int) -> bool:
         )
         return row is not None
 
-async def get_setting(pool: asyncpg.Pool, key: str) -> str:
+async def get_setting(pool: asyncpg.Pool, key: str) -> Optional[str]:
     async with pool.acquire() as conn:
         row = await conn.fetchrow(
             "SELECT value FROM bot_settings WHERE key = $1", key

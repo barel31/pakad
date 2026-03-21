@@ -25,7 +25,7 @@ def make_auth_header(user_id: int, bot_token: str) -> dict:
     user_json = json.dumps({"id": user_id, "first_name": "T"})
     params = {"user": user_json, "auth_date": auth_date, "query_id": "x"}
     dcs = "\n".join(f"{k}={v}" for k, v in sorted(params.items()))
-    sk = _hmac.new(b"WebAppData", bot_token.encode(), hashlib.sha256).digest()
-    h = _hmac.new(sk, dcs.encode(), hashlib.sha256).hexdigest()
+    sk = _hmac.HMAC(b"WebAppData", bot_token.encode(), hashlib.sha256).digest()
+    h = _hmac.HMAC(sk, dcs.encode(), hashlib.sha256).hexdigest()
     params["hash"] = h
     return {"Authorization": f"tma {urllib.parse.urlencode(params)}"}
