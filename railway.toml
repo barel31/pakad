@@ -2,7 +2,7 @@
 builder = "nixpacks"
 
 [deploy]
-startCommand = "python backend/main.py"
+startCommand = "python -m backend.main"
 restartPolicyType = "always"
 healthcheckPath = "/healthz"
 healthcheckTimeout = 10
