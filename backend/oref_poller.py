@@ -11,6 +11,7 @@ OREF_URL = os.environ.get(
     "OREF_URL",
     "https://www.oref.org.il/WarningMessages/alert/alerts.json",
 )
+logger.info("Oref poller URL: %s", OREF_URL)
 OREF_HEADERS = {
     "Referer": "https://www.oref.org.il/",
     "X-Requested-With": "XMLHttpRequest",
