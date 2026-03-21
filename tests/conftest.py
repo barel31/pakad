@@ -5,10 +5,12 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-TEST_DB_URL = os.environ["DATABASE_URL"]
+TEST_DB_URL = os.environ.get("DATABASE_URL")
 
 @pytest.fixture(scope="session")
 async def db_pool():
+    if not TEST_DB_URL:
+        pytest.skip("DATABASE_URL not set")
     pool = await asyncpg.create_pool(TEST_DB_URL, min_size=1, max_size=3)
     from backend.db import create_schema, seed_initial_data
     await create_schema(pool)

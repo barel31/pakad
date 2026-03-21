@@ -1,5 +1,3 @@
-from datetime import datetime
-
 TEMPLATES: dict[str, dict[str, str]] = {
     "start_welcome": {
         "he": "ברוך הבא! 🚨\nנרשמת לקבלת התראות פיקוד העורף.\nהשתמש ב-/help לרשימת פקודות.",
