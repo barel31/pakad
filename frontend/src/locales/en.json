@@ -1,0 +1,44 @@
+{
+  "nav": {
+    "history": "History",
+    "predictions": "Predictions",
+    "personal": "Personal",
+    "admin": "Admin"
+  },
+  "history": {
+    "title": "Recent Alerts",
+    "live": "Active Alert",
+    "noAlerts": "No alerts yet",
+    "areas": "Areas",
+    "time": "Time"
+  },
+  "predictions": {
+    "title": "Pattern Analysis",
+    "insufficientData": "Insufficient data (minimum {{min}} alerts required)",
+    "peakHour": "Peak Hour",
+    "peakDay": "Peak Day",
+    "mostTargeted": "Most Targeted Area",
+    "hourlyHeatmap": "Alerts by Hour",
+    "weeklyChart": "Alerts by Day"
+  },
+  "personal": {
+    "title": "My Statistics",
+    "totalAlerts": "Total Alerts",
+    "matchedAlerts": "Alerts Received",
+    "filters": "Your Filters",
+    "subscriptionHistory": "Subscription History"
+  },
+  "admin": {
+    "title": "Admin Panel",
+    "dashboard": "Dashboard",
+    "subscribers": "Subscribers",
+    "broadcast": "Broadcast",
+    "settings": "Settings",
+    "admins": "Admins"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "noData": "No data"
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "nav": {
+    "history": "היסטוריה",
+    "predictions": "תחזיות",
+    "personal": "אישי",
+    "admin": "ניהול"
+  },
+  "history": {
+    "title": "התראות אחרונות",
+    "live": "התראה פעילה כעת",
+    "noAlerts": "אין התראות עדיין",
+    "areas": "אזורים",
+    "time": "שעה"
+  },
+  "predictions": {
+    "title": "ניתוח דפוסים",
+    "insufficientData": "אין מספיק נתונים (נדרש לפחות {{min}} התראות)",
+    "peakHour": "שעת שיא",
+    "peakDay": "יום שיא",
+    "mostTargeted": "האזור הנפגע ביותר",
+    "hourlyHeatmap": "פילוח לפי שעה",
+    "weeklyChart": "פילוח לפי יום"
+  },
+  "personal": {
+    "title": "הסטטיסטיקות שלי",
+    "totalAlerts": "סה\"כ התראות",
+    "matchedAlerts": "התראות שקיבלת",
+    "filters": "הסינונים שלך",
+    "subscriptionHistory": "היסטוריית מנוי"
+  },
+  "admin": {
+    "title": "לוח ניהול",
+    "dashboard": "סקירה",
+    "subscribers": "מנויים",
+    "broadcast": "שידור",
+    "settings": "הגדרות",
+    "admins": "מנהלים"
+  },
+  "common": {
+    "loading": "טוען...",
+    "error": "שגיאה",
+    "noData": "אין מידע"
+  }
+}
