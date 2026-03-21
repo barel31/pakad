@@ -44,7 +44,8 @@ async def cmd_start(message: Message, *, pool: asyncpg.Pool, mini_app_url: str) 
 async def cmd_stop(message: Message, *, pool: asyncpg.Pool) -> None:
     sub = await get_subscriber(pool, message.from_user.id)
     lang = sub["language"] if sub else "he"
-    await deactivate_subscriber(pool, chat_id=message.from_user.id)
+    if sub:
+        await deactivate_subscriber(pool, chat_id=message.from_user.id)
     await message.answer(render("stop_confirmation", lang))
 
 
@@ -65,6 +66,10 @@ async def cmd_filter(message: Message, *, pool: asyncpg.Pool) -> None:
             matched = row["name"] if row else None
     if not matched:
         await message.answer(render("filter_not_found", lang, area=area_input))
+        return
+    existing = await get_subscriber_filters(pool, message.from_user.id)
+    if matched in existing:
+        await message.answer(render("filter_already_exists", lang, area=matched))
         return
     added = await add_filter(pool, chat_id=message.from_user.id, area=matched)
     if not added:
@@ -114,6 +119,9 @@ async def cmd_language(message: Message, *, pool: asyncpg.Pool) -> None:
     parts = message.text.split(maxsplit=1)
     if len(parts) < 2 or parts[1].strip() not in ("he", "en"):
         await message.answer(render("language_invalid", current_lang))
+        return
+    if not sub:
+        await message.answer(render("start_welcome", current_lang))
         return
     new_lang = parts[1].strip()
     async with pool.acquire() as conn:

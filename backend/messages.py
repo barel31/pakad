@@ -15,6 +15,10 @@ TEMPLATES: dict[str, dict[str, str]] = {
         "he": "האזור '{area}' לא נמצא. השתמש ב-/areas לרשימה מלאה.",
         "en": "Area '{area}' not found. Use /areas for the full list.",
     },
+    "filter_already_exists": {
+        "he": "האזור '{area}' כבר נמצא בסינונים שלך.",
+        "en": "Area '{area}' is already in your filters.",
+    },
     "filter_limit_reached": {
         "he": "הגעת למגבלת 10 סינונים. השתמש ב-/clearfilters כדי לנקות.",
         "en": "You have reached the 10-filter limit. Use /clearfilters to reset.",
