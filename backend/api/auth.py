@@ -41,7 +41,7 @@ def validate_init_data(init_data: str, bot_token: str, max_age: int = 3600) -> i
 from fastapi import Request, HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
-security = HTTPBearer()
+security = HTTPBearer(auto_error=False)
 
 async def get_current_user(
     request: Request,

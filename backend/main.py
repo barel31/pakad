@@ -5,11 +5,11 @@ from dotenv import load_dotenv
 import uvicorn
 from aiogram import Bot
 
-load_dotenv()
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 logger = logging.getLogger(__name__)
 
 async def main():
+    load_dotenv()
     token = os.environ["TELEGRAM_BOT_TOKEN"]
     db_url = os.environ["DATABASE_URL"]
     mini_app_url = os.environ["MINI_APP_URL"]

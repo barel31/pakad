@@ -18,7 +18,12 @@ def create_app(pool: asyncpg.Pool) -> FastAPI:
     )
 
     app.state.pool = pool
-    app.state.bot_token = os.environ.get("TELEGRAM_BOT_TOKEN", "")
+    bot_token = os.environ.get("TELEGRAM_BOT_TOKEN")
+    if not bot_token:
+        import logging
+        logging.getLogger(__name__).warning("TELEGRAM_BOT_TOKEN not set — auth will fail")
+        bot_token = ""
+    app.state.bot_token = bot_token
 
     @app.get("/healthz")
     async def healthz():
