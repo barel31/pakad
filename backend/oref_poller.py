@@ -1,12 +1,16 @@
 import asyncio
 import logging
+import os
 import aiohttp
 import asyncpg
 from typing import Optional
 
 logger = logging.getLogger(__name__)
 
-OREF_URL = "https://www.oref.org.il/WarningMessages/alert/alerts.json"
+OREF_URL = os.environ.get(
+    "OREF_URL",
+    "https://www.oref.org.il/WarningMessages/alert/alerts.json",
+)
 OREF_HEADERS = {
     "Referer": "https://www.oref.org.il/",
     "X-Requested-With": "XMLHttpRequest",
