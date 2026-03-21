@@ -34,7 +34,7 @@ async def test_forbidden_error_deactivates_subscriber(db_pool):
 
     await upsert_subscriber(db_pool, chat_id=2001, language="he")
     bot = AsyncMock()
-    bot.send_message = AsyncMock(side_effect=TelegramForbiddenError(method=MagicMock(), message="blocked"))
+    bot.send_message = AsyncMock(side_effect=TelegramForbiddenError(MagicMock(), "Forbidden: bot was blocked by the user"))
     notifier = Notifier(bot=bot, pool=db_pool)
 
     alert = {"id": "alert-forbidden-test", "title": "t", "data": ["תל אביב"], "desc": "d"}

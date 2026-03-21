@@ -53,18 +53,22 @@ class Notifier:
         title: str, areas: list[str], time_str: str
     ) -> None:
         msg = render_alert(language=language, title=title, areas=areas, time_str=time_str)
-        try:
-            await self._bot.send_message(
-                chat_id=chat_id,
-                text=msg,
-                parse_mode=ParseMode.MARKDOWN,
-            )
-        except TelegramForbiddenError:
-            logger.info("User %s blocked bot — deactivating", chat_id)
-            await deactivate_subscriber(self._pool, chat_id)
-        except TelegramRetryAfter as e:
-            wait = min(e.retry_after, MAX_RETRY_AFTER)
-            await asyncio.sleep(wait)
-            await self._send(chat_id, language, title, areas, time_str)
-        except Exception as e:
-            logger.error("Failed to send to %s: %s", chat_id, e)
+        while True:
+            try:
+                await self._bot.send_message(
+                    chat_id=chat_id,
+                    text=msg,
+                    parse_mode=ParseMode.MARKDOWN,
+                )
+                return
+            except TelegramForbiddenError:
+                logger.info("User %s blocked bot — deactivating", chat_id)
+                await deactivate_subscriber(self._pool, chat_id)
+                return
+            except TelegramRetryAfter as e:
+                wait = min(e.retry_after, MAX_RETRY_AFTER)
+                await asyncio.sleep(wait)
+                # loop continues, retries the send
+            except Exception as e:
+                logger.error("Failed to send to %s: %s", chat_id, e)
+                return
