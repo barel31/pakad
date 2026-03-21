@@ -70,3 +70,14 @@ async def test_full_queue_replaces_item():
     await poller._poll_once(session)
     item = queue.get_nowait()
     assert item["id"] == "new"
+
+async def test_timeout_is_handled_gracefully():
+    queue = asyncio.Queue(maxsize=1)
+    poller = OrefPoller(queue=queue, interval=0.1)
+    mock_session = MagicMock()
+    mock_session.get = MagicMock(return_value=AsyncMock(
+        __aenter__=AsyncMock(side_effect=asyncio.TimeoutError()),
+        __aexit__=AsyncMock(return_value=False),
+    ))
+    await poller._poll_once(mock_session)  # must not raise
+    assert queue.empty()
