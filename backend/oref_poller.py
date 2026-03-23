@@ -53,7 +53,7 @@ class OrefPoller:
         """Poll the Oref API once. Accepts the session so tests can inject a mock."""
         try:
             async with session.get(
-                OREF_URL, headers=OREF_HEADERS, timeout=aiohttp.ClientTimeout(total=5)
+                OREF_URL, headers=OREF_HEADERS, timeout=aiohttp.ClientTimeout(total=15)
             ) as resp:
                 if resp.status != 200:
                     logger.warning("Oref API returned %s", resp.status)
