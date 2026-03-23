@@ -1,8 +1,2 @@
 {
-  "rewrites": [
-    {
-      "source": "/api/:path*",
-      "destination": "https://pakad-production.up.railway.app/api/:path*"
-    }
-  ]
 }
