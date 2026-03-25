@@ -1,6 +1,7 @@
 import hmac
 import hashlib
 import json
+import os
 import time
 import urllib.parse
 from typing import Optional
@@ -47,6 +48,10 @@ async def get_current_user(
     request: Request,
     credentials: HTTPAuthorizationCredentials = Depends(security),
 ) -> int:
+    # Dev bypass: skip auth when DEV_USER_ID is set and no credentials provided
+    dev_user = os.environ.get("DEV_USER_ID")
+    if dev_user and (not credentials or credentials.scheme.lower() != "tma"):
+        return int(dev_user)
     if not credentials or credentials.scheme.lower() != "tma":
         raise HTTPException(status_code=401, detail="Missing or invalid auth scheme")
     try:

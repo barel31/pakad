@@ -13,5 +13,6 @@ api.interceptors.request.use((config) => {
   if (initData) {
     config.headers.Authorization = `tma ${initData}`;
   }
+  config.headers["ngrok-skip-browser-warning"] = "true";
   return config;
 });
